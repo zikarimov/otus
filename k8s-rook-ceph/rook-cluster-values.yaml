@@ -1,0 +1,63 @@
+operatorNamespace: rook-ceph
+
+cephClusterSpec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v19.2.0
+
+  dataDirHostPath: /var/lib/rook
+
+  mon:
+    count: 3
+
+  mgr:
+    count: 2
+    modules:
+    - name: pg_autoscaler
+      enabled: true
+
+  dashboard:
+    enabled: true
+
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+    - name: "worker1"
+      devices:
+      - name: "vdb"
+    - name: "worker2"
+      devices:
+      - name: "vdb"
+    - name: "worker3"
+      devices:
+      - name: "vdb"
+
+# Настройки для создания pools и storage classes
+cephBlockPools:
+- name: ceph-blockpool
+  spec:
+    replicated:
+      size: 3
+  storageClass:
+    enabled: true
+    name: rook-ceph-block
+    isDefault: true
+
+cephFileSystems:
+- name: ceph-filesystem
+  spec:
+    metadataPool:
+      replicated:
+        size: 3
+    dataPools:
+    - name: replicated
+      replicated:
+        size: 3
+    metadataServer:
+      activeCount: 1
+  storageClass:
+    enabled: true
+    name: rook-cephfs
+
+toolbox:
+  enabled: true

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-documents-deployment-new
+  namespace: otus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-documents-new
+  template:
+    metadata:
+      labels:
+        app: postgres-documents-new
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        env:
+        - name: POSTGRES_DB
+          value: "otus_documents_db"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: DATABASE_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: DATABASE_PASSWORD
+        - name: PGDATA
+          value: "/var/lib/postgresql/data"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-documents-ceph-pvc
+

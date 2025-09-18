@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-api-deployment
+  namespace: otus
+  labels:
+    app: users-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users-api
+  template:
+    metadata:
+      labels:
+        app: users-api
+    spec:
+      containers:
+      - name: users-api
+        image: zikarimovlt/users-api:v1
+        ports:
+        - containerPort: 3002
+        env:
+        - name: DATABASE_HOST
+          value: postgres-users-service
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: DATABASE_USERNAME
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: DATABASE_PASSWORD
+        - name: DATABASE_NAME
+          value: "otus_users_db"
+        - name: PORT
+          value: "3002"
+        - name: HOST
+          value: "0.0.0.0"
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "25m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet: 
+            path: /users/health-check
+            port: 3002
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /users/health-check
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 5
+
+
+
