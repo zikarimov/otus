@@ -1,0 +1,28 @@
+appName: fastapi-app
+
+namespace: otus
+
+image:
+  repository: zikarimovlt/fastapi-app
+  tag: latest
+  imagePullPolicy: Always
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+  protocol: TCP
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+ingress:
+  className: nginx
+  

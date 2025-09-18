@@ -1,0 +1,36 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  IMAGE_NAME: "zikarimovlt/fastapi-app"
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  HELM_VERSION: 3.12.0
+
+build-job:
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.0-debug
+    entrypoint: [""]
+  stage: build
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"username\":\"$DOCKER_HUB_USER\",\"password\":\"$DOCKER_HUB_TOKEN\"}}}" > /kaniko/.docker/config.json
+  script:
+    - /kaniko/executor --context=${CI_PROJECT_DIR}/helm-lesson-main --dockerfile=Dockerfile --destination=${IMAGE_NAME}:${IMAGE_TAG} --cache=true --cache-ttl=24h
+  tags:
+    - docker
+
+deploy-job:
+  image: dtzar/helm-kubectl:$HELM_VERSION
+  stage: deploy
+  before_script:
+    - apk add --no-cache make
+  script:
+    - cd helm-lesson-main
+    - mkdir -p ~/.kube
+    - echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+    - chmod 600 ~/.kube/config
+    - kubectl cluster-info
+    - make helm-deploy
+  tags:
+    - docker

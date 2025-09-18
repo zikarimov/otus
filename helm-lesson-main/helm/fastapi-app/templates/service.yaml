@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}  # Имя сервиса
+  namespace: {{ .Values.namespace }}  # Namespace сервиса
+  labels:
+    app: {{ .Values.appName }}  # Метка приложения
+spec:
+  type: {{ .Values.service.type }}  # Тип сервиса (внутренний IP в кластере)
+  ports:
+    - port: {{ .Values.service.port }}  # Порт, на котором сервис принимает запросы
+      targetPort: {{ .Values.service.targetPort }}  # Порт контейнера, на который перенаправляются запросы
+      protocol: {{ .Values.service.protocol }}  # Протокол соединения
+  selector:  # Селектор для выбора pod'ов, к которым направляется трафик
+    app: {{ .Values.appName }}

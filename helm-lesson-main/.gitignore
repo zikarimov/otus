@@ -1,0 +1,6 @@
+.env
+kubeconfig.yaml
+config.txt
+gitlab-kubeconfig.yaml
+key.json
+buf

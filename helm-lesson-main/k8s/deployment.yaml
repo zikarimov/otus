@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-app
+  namespace: otus
+  labels:
+    app: fastapi-app
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: fastapi-app
+  template: 
+    metadata:
+      labels:
+        app: fastapi-app
+    spec:
+      containers: 
+        - name: fastapi-app 
+          image: zikarimovlt/fastapi-app:latest 
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi

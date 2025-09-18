@@ -1,0 +1,79 @@
+# Создание namespace для изоляции ресурсов FastAPI приложения
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: otus  # Имя namespace
+
+---
+# Deployment для управления pod'ами FastAPI приложения
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-app  # Имя deployment'а
+  namespace: otus  # Namespace, в котором будет создан deployment
+  labels:
+    app: fastapi-app  # Метка для идентификации приложения
+spec:
+  replicas: 1  # Количество реплик (pod'ов) для запуска
+  selector:
+    matchLabels:  # Селектор для выбора pod'ов, которыми управляет deployment
+      app: fastapi-app
+  template:  # Шаблон для создания pod'ов
+    metadata:
+      labels:  # Метки, которые будут применены к pod'ам
+        app: fastapi-app
+    spec:
+      containers:  # Список контейнеров в pod'е
+        - name: fastapi-app  # Имя контейнера
+          image: zikarimovlt/fastapi-app:latest  # Docker образ для контейнера
+          imagePullPolicy: Always  # Политика загрузки образа (всегда загружать)
+          ports:
+            - containerPort: 8000  # Порт, который слушает приложение внутри контейнера
+          resources:  # Ресурсы для контейнера
+            limits:  # Максимальные ресурсы
+              cpu: 500m  # Максимум CPU (500 милликор)
+              memory: 512Mi  # Максимум памяти (512 мегабайт)
+            requests:  # Запрашиваемые ресурсы
+              cpu: 200m  # Минимум CPU (200 милликор)
+              memory: 256Mi  # Минимум памяти (256 мегабайт)
+
+---
+# Service для обеспечения сетевого доступа к pod'ам FastAPI
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-app  # Имя сервиса
+  namespace: otus  # Namespace сервиса
+  labels:
+    app: fastapi-app  # Метка приложения
+spec:
+  type: ClusterIP  # Тип сервиса (внутренний IP в кластере)
+  ports:
+    - port: 80  # Порт, на котором сервис принимает запросы
+      targetPort: 8000  # Порт контейнера, на который перенаправляются запросы
+      protocol: TCP  # Протокол соединения
+  selector:  # Селектор для выбора pod'ов, к которым направляется трафик
+    app: fastapi-app
+#    environment: production
+
+---
+# Ingress для внешнего доступа к приложению через HTTP(S)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi-app  # Имя ingress'а
+  namespace: otus  # Namespace ingress'а
+  labels:
+    app: fastapi-app  # Метка приложения
+spec:
+  ingressClassName: nginx  # Класс ingress контроллера (nginx)
+  rules:  # Правила маршрутизации
+    - http:  # HTTP правила
+        paths:  # Пути для маршрутизации
+          - path: /  # Путь запроса (корневой путь)
+            pathType: Prefix  # Тип пути (префикс)
+            backend:  # Backend сервис для обработки запросов
+              service:
+                name: fastapi-app  # Имя сервиса
+                port:
+                  number: 80  # Порт сервиса

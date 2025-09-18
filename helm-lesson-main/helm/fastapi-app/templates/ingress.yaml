@@ -1,0 +1,20 @@
+# Ingress для внешнего доступа к приложению через HTTP(S)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.appName }}  # Имя ingress'а
+  namespace: {{ .Values.namespace }}  # Namespace ingress'а
+  labels:
+    app: {{ .Values.appName }}  # Метка приложения
+spec:
+  ingressClassName: {{ .Values.ingress.className }}  # Класс ingress контроллера (nginx)
+  rules:  # Правила маршрутизации
+    - http:  # HTTP правила
+        paths:  # Пути для маршрутизации
+          - path: /  # Путь запроса (корневой путь)
+            pathType: Prefix  # Тип пути (префикс)
+            backend:  # Backend сервис для обработки запросов
+              service:
+                name: {{ .Values.appName }}  # Имя сервиса
+                port:
+                  number: {{ .Values.service.port }}  # Порт сервиса
