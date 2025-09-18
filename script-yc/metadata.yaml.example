@@ -1,0 +1,7 @@
+#cloud-config
+users:
+  - name: test-vm2
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh-authorized-keys: ''
